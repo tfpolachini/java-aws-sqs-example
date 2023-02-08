@@ -130,7 +130,7 @@ Em sua configuração padrão, ```QueueMessagingTemplate``` trata apenas mensage
 
 ## Produtor e Consumidor com mensagem no formato _string_
 
-Conforme mencionei acima, na versão ```1.0.0``` do projeto trabalharei apenas com mensagens no formato _string_.
+Conforme mencionei acima, na versão [1.0.0](https://github.com/tfpolachini/java-aws-sqs-example/releases/tag/v1.0.0) do projeto trabalharei apenas com mensagens no formato _string_.
 
 	@Component
 	public class Producer {
