@@ -1,0 +1,10 @@
+queues:
+  bills-to-pay: http://localhost:4566/000000000000/bills-to-pay
+  
+localstack:
+  serviceUrl: http://localhost:4566
+    
+cloud:
+  aws:
+    region:
+      static: us-east-1
