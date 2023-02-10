@@ -1,5 +1,5 @@
 queues:
-  bills-to-pay: http://localhost:4566/000000000000/bills-to-pay
+  bills-to-pay: bills-to-pay
   
 localstack:
   serviceUrl: http://localhost:4566

@@ -162,8 +162,101 @@ Conforme mencionei acima, na versão [1.0.0](https://github.com/tfpolachini/java
 		}
 	}
 
-## Execução do programa
+### Execução do programa
 
 A ideia aqui é bem simples. Uma _API_ está exposta para fazer o papel do produtor, colocando _contas a pagar_ na fila **SQS**. O consumidor, que está configurado neste mesmo serviço, deverá receber essas _contas_. Um _log_ será mostrado a cada informação recebida. O comando abaixo envia uma _conta a pagar_ para a _API_ produtora.
 
 	curl -d "34.56" -H "Content-Type: application/text" -X POST http://localhost:8080
+
+## Produtor e Consumidor com mensagem no formato _object_
+
+Na versão [2.0.0](https://github.com/tfpolachini/java-aws-sqs-example/releases/tag/v2.0.0) do projeto trabalharei com mensagens no formato _object_. E isso só é possível com as seguintes configurações:
+
+### Criação de uma entidade
+
+A entidade criada é o objeto transportado entre _API_, o produtor e o consumidor **SQS**
+
+    public class Bill {
+
+        private String id;
+        private String payee;
+        private BigDecimal value;
+
+        // getters, setters e toString
+    }
+
+### Beans de configuração do **SQS**
+
+      /**
+      * Bean de configuração do consumer. Está sendo inicializado aqui de forma customizada.
+      * @param amazonSQSAsync
+      * @return
+      */
+      @Bean
+      SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory(AmazonSQSAsync amazonSQSAsync) {
+          SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
+          factory.setAmazonSqs(amazonSQSAsync);
+          factory.setAutoStartup(true);
+          factory.setMaxNumberOfMessages(1);
+          factory.setResourceIdResolver(getResourceIdResolver(amazonSQSAsync));
+
+          return factory;
+      }
+
+      /**
+       * Configura um conversor de mensagens, o Jackson
+       * @param amazonSQSAsync
+       * @return
+       */
+      @Bean
+      QueueMessageHandlerFactory getQueueMessageHandlerFactory(AmazonSQSAsync amazonSQSAsync) {
+          var queueMessageHandlerFactory = new QueueMessageHandlerFactory();
+
+          queueMessageHandlerFactory.setAmazonSqs(amazonSQSAsync);
+          queueMessageHandlerFactory.setMessageConverters(List.of(new MappingJackson2MessageConverter()));
+
+          return queueMessageHandlerFactory;
+      }
+        
+### Produtor
+
+O produtor passa a enviar um objeto e precisa convertê-lo antes de enviar para a fila. 
+
+    ...
+    public void produce(Bill bill) {
+		queueMessagingTemplate.convertAndSend(queueName, bill);
+	}
+    ...
+
+### Consumidor
+
+O consumidor passa a receber um objeto.
+
+    ...
+    public void listen(@Payload Bill bill) {
+		log.info("A bill of {} was received. I'll pay asap!", bill);
+	}
+    ...
+
+### Resolvedor de nomes da fila
+
+Uma última configuração interessante feita nesse projeto foi um resolvedor de nomes, não sendo mais necessário informar o nome completo da fila **SQS** no arquivo de propriedades.
+
+    private ResourceIdResolver getResourceIdResolver(AmazonSQSAsync amazonSQSAsync) {
+		return new ResourceIdResolver() {
+			@Override
+			public String resolveToPhysicalResourceId(String logicalResourceId) {
+				return amazonSQSAsync.getQueueUrl(logicalResourceId).getQueueUrl();
+			}
+		};
+	}
+
+### Execução do programa
+
+    curl --location --request POST 'localhost:8080/bills/pay' \
+        --header 'Content-Type: application/json' \
+        --data-raw '{
+            "id": "761265f0-518e-4028-8e56-3014127bfa00",
+            "payee": "Tulio F. Polachini",
+            "value": "13.76"
+        }'

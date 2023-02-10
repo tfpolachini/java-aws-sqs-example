@@ -1,5 +1,6 @@
 package com.polachini.java_aws_sqs_example.controller;
 
+import com.polachini.java_aws_sqs_example.entity.Bill;
 import com.polachini.java_aws_sqs_example.sqs.Producer;
 
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ public class BillsController {
 	private Producer sqsProducer;
 	
 	@PostMapping("/pay")
-	public void pay(@RequestBody String bill) {
+	public void pay(@RequestBody Bill bill) {
 		
 		sqsProducer.produce(bill);
 		
