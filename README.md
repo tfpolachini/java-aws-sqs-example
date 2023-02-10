@@ -5,9 +5,9 @@ Este projeto é um exemplo de como podemos utilizar o [Spring Cloud AWS](https:/
 1. **String**: onde as informações são enviadas no formato _json_ e você é o responsável por convertê-la para um objeto de negócio; 
 2. **Object**: onde as informações já chegam como um objeto, não sendo necessária nenhuma conversão.
 
-Para que seja possível a execução local do projeto, sem a necessidade de recursos criados na **AWS**, utilizarei o [localstack](https://github.com/localstack/localstack). Porém, mostrarei também como montar um ambiente híbrido, possibilitando utilizar o _localstack_ durante o desenvolvimento e os recursos da **AWS** durante a execução em produção.
+Para ser possível a execução local do projeto, sem a necessidade de recursos criados na **AWS**, utilizarei o [localstack](https://github.com/localstack/localstack). Porém, mostrarei também como montar um ambiente híbrido, possibilitando utilizar o _localstack_ durante o desenvolvimento e os recursos da **AWS** durante a execução em produção.
 
-Por último, mostrarei como consumir várias mensagens ao mesmo tempo, aumentando a performance do serviço.
+Por último, mostrarei como consumir várias mensagens em simultâneo, aumentando o desempenho do serviço.
 
 As configurações acima citadas, poderão ser observadas nas diferentes versões disponilizadas do projeto, aqui nesse repositório.
 
@@ -32,7 +32,7 @@ Para essa configuração utilizarei o **Docker Compose**. Segue abaixo o conteú
 	      - "./init:/docker-entrypoint-initaws.d/" # monta um volume com script de inicialização
 	      - "/var/run/docker.sock:/var/run/docker.sock"
 
-O script de inicialização é responsável por criar os recursos necessários (**SQS**):
+O _script_ de inicialização é responsável por criar os recursos necessários (**SQS**):
 
 	#!/bin/bash
 	awslocal sqs create-queue --queue-name "bills-to-pay" --region "us-east-1"
@@ -43,7 +43,7 @@ O ambiente pode ser iniciado no terminal, através do comando abaixo, no diretó
 
 	$ docker-compose -f docker/docker-compose.yml up -d
 	
-A opção _-f_ só será utilizada se você estiver executando o comando de fora do diretório _docker_.
+A opção _-f_ só será utilizada se você executar o comando de fora do diretório _docker_.
 
 ## Configuração do projeto
 
@@ -126,7 +126,7 @@ O próximo _bean_ é o que nos possibilita enviar mensagens para a fila **SQS**:
 		}
 	}
 
-Em sua configuração padrão, ```QueueMessagingTemplate``` trata apenas mensagens no formato _string_.
+Na sua configuração padrão, ```QueueMessagingTemplate``` trata apenas mensagens no formato _string_.
 
 ## Produtor e Consumidor com mensagem no formato _string_
 
@@ -164,6 +164,6 @@ Conforme mencionei acima, na versão [1.0.0](https://github.com/tfpolachini/java
 
 ## Execução do programa
 
-A ideia aqui é bem simples. Uma _API_ está exposta para fazer o papel do produtor, colocando _contas a pagar_ na fila **SQS**.  O consumidor, que está configurado neste mesmo serviço, deverá receber essas _contas_. Um _log_ será mostrado a cada informação recebida. O comando abaixo envia uma _conta a pagar_ para a _API_ produtora.
+A ideia aqui é bem simples. Uma _API_ está exposta para fazer o papel do produtor, colocando _contas a pagar_ na fila **SQS**. O consumidor, que está configurado neste mesmo serviço, deverá receber essas _contas_. Um _log_ será mostrado a cada informação recebida. O comando abaixo envia uma _conta a pagar_ para a _API_ produtora.
 
 	curl -d "34.56" -H "Content-Type: application/text" -X POST http://localhost:8080
